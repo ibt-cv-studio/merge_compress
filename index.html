@@ -1,157 +1,450 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JobPack</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; }
-        .btn { transition: all 0.3s; }
-        .btn:hover { transform: scale(1.05); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobPack</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+<style>
+
+body{
+    font-family:'Segoe UI',sans-serif;
+    background:linear-gradient(135deg,#eff6ff,#dbeafe,#eef2ff);
+    min-height:100vh;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    padding:30px;
+}
+
+.logo{
+    text-align:center;
+    font-size:60px;
+    font-weight:bold;
+    color:#0f172a;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    text-align:center;
+    color:#2563eb;
+    font-size:22px;
+    margin-bottom:40px;
+}
+
+.upload-area{
+    background:white;
+    border:3px dashed #93c5fd;
+    border-radius:25px;
+    padding:60px;
+    text-align:center;
+    cursor:pointer;
+    transition:.3s;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.upload-area:hover{
+    border-color:#2563eb;
+    background:#eff6ff;
+}
+
+.upload-area.dragover{
+    background:#dbeafe;
+}
+
+#fileList{
+    margin-top:25px;
+    background:white;
+    border-radius:25px;
+    padding:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.file-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:15px;
+    padding:15px;
+    margin-bottom:10px;
+}
+
+.file-item:hover{
+    background:#eff6ff;
+}
+
+.remove-btn{
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin-top:25px;
+}
+
+.action-btn{
+    border:none;
+    color:white;
+    font-size:22px;
+    font-weight:bold;
+    padding:25px;
+    border-radius:20px;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.action-btn:hover{
+    transform:translateY(-4px);
+}
+
+.merge-btn{
+    background:linear-gradient(135deg,#2563eb,#4f46e5);
+}
+
+.compress-btn{
+    background:linear-gradient(135deg,#9333ea,#4f46e5);
+}
+
+#result{
+    display:none;
+    margin-top:30px;
+    background:white;
+    border-radius:25px;
+    padding:30px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.download-btn{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    color:white;
+    border:none;
+    padding:18px 35px;
+    border-radius:15px;
+    font-size:20px;
+    cursor:pointer;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.stat-card{
+    background:white;
+    border-radius:20px;
+    padding:20px;
+    text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,.05);
+}
+
+.stat-number{
+    font-size:32px;
+    font-weight:bold;
+    color:#2563eb;
+}
+
+</style>
 </head>
-<body class="bg-gray-50 min-h-screen py-12">
 
-<div class="max-w-3xl mx-auto px-6">
+<body>
 
-    <h1 class="text-5xl font-bold text-center text-gray-900 mb-12">📄 JobPack</h1>
+<div class="container">
 
-    <!-- 1. Upload File -->
-    <button onclick="document.getElementById('fileInput').click()" 
-            class="btn w-full bg-blue-600 hover:bg-blue-700 text-white text-2xl py-6 rounded-2xl font-medium shadow-lg mb-8">
-        Upload file
-    </button>
-    <input type="file" id="fileInput" multiple class="hidden" accept=".pdf,.docx,.jpg,.png,.jpeg">
+    <div class="logo">📄 JobPack</div>
 
-    <!-- 2. List of uploaded files -->
-    <div id="fileList" class="bg-white rounded-2xl shadow p-6 mb-8 min-h-[180px] text-left"></div>
-
-    <!-- 3. Merge & Compress Buttons -->
-    <div class="grid grid-cols-2 gap-6 mb-8">
-        <button onclick="mergeFiles()" 
-                class="btn bg-blue-600 hover:bg-blue-700 text-white text-2xl py-8 rounded-2xl font-medium shadow-lg">
-            Merge file
-        </button>
-        <button onclick="compressFile()" 
-                class="btn bg-blue-600 hover:bg-blue-700 text-white text-2xl py-8 rounded-2xl font-medium shadow-lg">
-            compress
-        </button>
+    <div class="subtitle">
+        Merge • Compress • Organize Professional Documents
     </div>
 
-    <!-- 4. Final File Area -->
-    <div id="finalSection" class="hidden bg-white rounded-2xl shadow p-6 mb-8 text-center">
-        <p class="text-lg font-medium mb-4">Final file for merged or compressed</p>
-        <div id="finalFileName" class="text-blue-600 font-medium mb-6"></div>
-        
-        <!-- Download Button -->
-        <button onclick="downloadFinal()" 
-                class="btn w-full bg-blue-600 hover:bg-blue-700 text-white text-2xl py-6 rounded-2xl font-medium shadow-lg">
-            download
+    <div class="stats">
+
+        <div class="stat-card">
+            <div class="stat-number" id="fileCount">0</div>
+            <div>Total Files</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-number" id="totalSize">0 MB</div>
+            <div>Total Size</div>
+        </div>
+
+    </div>
+
+    <div class="upload-area" id="dropZone">
+        <h2 style="font-size:32px;">📤 Upload Documents</h2>
+        <p style="margin-top:10px;color:#64748b;">
+            Click or Drag & Drop PDF Files Here
+        </p>
+
+        <input
+            type="file"
+            id="fileInput"
+            multiple
+            accept=".pdf"
+            hidden>
+    </div>
+
+    <div id="fileList">
+        <p style="text-align:center;color:#64748b;">
+            No files uploaded yet
+        </p>
+    </div>
+
+    <div class="actions">
+
+        <button
+            class="action-btn merge-btn"
+            onclick="mergeFiles()">
+            🔗 Merge Files
         </button>
+
+        <button
+            class="action-btn compress-btn"
+            onclick="compressFiles()">
+            📦 Compress PDF
+        </button>
+
+    </div>
+
+    <div id="result">
+
+        <h2 style="color:#16a34a;font-size:32px;">
+            ✅ File Ready
+        </h2>
+
+        <p id="resultName"
+           style="margin:15px 0;">
+        </p>
+
+        <button
+            class="download-btn"
+            onclick="downloadFile()">
+            📥 Download
+        </button>
+
     </div>
 
 </div>
 
 <script>
-let selectedFiles = [];
+
+let files = [];
 let finalBlob = null;
 
-const fileInput = document.getElementById('fileInput');
-const fileListEl = document.getElementById('fileList');
-const finalSection = document.getElementById('finalSection');
-const finalFileName = document.getElementById('finalFileName');
+const fileInput =
+document.getElementById("fileInput");
 
-fileInput.addEventListener('change', (e) => {
-    selectedFiles = Array.from(e.target.files);
-    renderFileList();
+const dropZone =
+document.getElementById("dropZone");
+
+dropZone.onclick = () => {
+    fileInput.click();
+};
+
+dropZone.addEventListener("dragover", e => {
+    e.preventDefault();
+    dropZone.classList.add("dragover");
 });
 
-function renderFileList() {
-    fileListEl.innerHTML = `<p class="font-medium mb-3">List of all file you upload (${selectedFiles.length})</p>`;
-    
-    const ul = document.createElement('ul');
-    ul.className = "space-y-2";
-    selectedFiles.forEach((file, i) => {
-        const li = document.createElement('li');
-        li.className = "flex justify-between bg-gray-50 px-4 py-2 rounded-xl";
-        li.innerHTML = `<span>${i+1}. ${file.name}</span>`;
-        ul.appendChild(li);
-    });
-    fileListEl.appendChild(ul);
-}
+dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("dragover");
+});
 
-async function mergeFiles() {
-    if (selectedFiles.length < 1) {
-        alert("Please upload at least one file");
-        return;
-    }
+dropZone.addEventListener("drop", e => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    handleFiles(e.dataTransfer.files);
+});
 
-    const btn = event.target;
-    btn.innerHTML = "🔄 Merging...";
-    btn.disabled = true;
+fileInput.addEventListener("change", e => {
+    handleFiles(e.target.files);
+});
 
-    try {
-        const mergedPdf = await PDFLib.PDFDocument.create();
-        for (let file of selectedFiles) {
-            if (file.type === "application/pdf") {
-                const buffer = await file.arrayBuffer();
-                const pdf = await PDFLib.PDFDocument.load(buffer);
-                const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-                pages.forEach(page => mergedPdf.addPage(page));
-            }
+function handleFiles(selected){
+
+    for(let file of selected){
+
+        if(file.type === "application/pdf"){
+            files.push(file);
         }
-        const pdfBytes = await mergedPdf.save();
-        finalBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-        finalFileName.textContent = "Merged_Application.pdf";
-        finalSection.classList.remove('hidden');
-    } catch (err) {
-        alert("Merge done (PDFs only fully supported)");
-        finalBlob = new Blob([], { type: 'application/pdf' });
-        finalFileName.textContent = "Merged_Application.pdf";
-        finalSection.classList.remove('hidden');
     }
 
-    btn.innerHTML = "Merge file";
-    btn.disabled = false;
+    renderFiles();
 }
 
-function compressFile() {
-    if (selectedFiles.length === 0) {
-        alert("Please upload a file first");
+function formatSize(bytes){
+
+    let mb = bytes / (1024 * 1024);
+
+    if(mb < 1){
+        return (bytes/1024).toFixed(2) + " KB";
+    }
+
+    return mb.toFixed(2) + " MB";
+}
+
+function renderFiles(){
+
+    const list =
+    document.getElementById("fileList");
+
+    if(files.length === 0){
+
+        list.innerHTML =
+        "<p style='text-align:center;color:#64748b;'>No files uploaded yet</p>";
+
         return;
     }
 
-    const size = prompt("Enter target size (example: 2 for 2MB or 500 for 500KB):", "2");
-    if (!size) return;
+    let html = "";
+    let total = 0;
 
-    const btn = event.target;
-    btn.innerHTML = "🔄 Compressing...";
-    btn.disabled = true;
+    files.forEach((file,index)=>{
 
-    // Simulate compression - download the first file as compressed
-    const file = selectedFiles[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-        finalBlob = new Blob([reader.result]);
-        finalFileName.textContent = `Compressed_${file.name}`;
-        finalSection.classList.remove('hidden');
-        
-        btn.innerHTML = "compress";
-        btn.disabled = false;
-    };
-    reader.readAsArrayBuffer(file);
+        total += file.size;
+
+        html += `
+        <div class="file-item">
+
+            <div>
+                <strong>${file.name}</strong><br>
+                <small>${formatSize(file.size)}</small>
+            </div>
+
+            <button
+                class="remove-btn"
+                onclick="removeFile(${index})">
+                Remove
+            </button>
+
+        </div>
+        `;
+    });
+
+    list.innerHTML = html;
+
+    document.getElementById("fileCount")
+    .innerText = files.length;
+
+    document.getElementById("totalSize")
+    .innerText = formatSize(total);
 }
 
-function downloadFinal() {
-    if (!finalBlob) return;
-    const url = URL.createObjectURL(finalBlob);
-    const a = document.createElement('a');
+function removeFile(index){
+
+    files.splice(index,1);
+
+    renderFiles();
+}
+
+async function mergeFiles(){
+
+    if(files.length === 0){
+
+        alert("Please upload PDF files first.");
+        return;
+    }
+
+    try{
+
+        const mergedPdf =
+        await PDFLib.PDFDocument.create();
+
+        for(const file of files){
+
+            const bytes =
+            await file.arrayBuffer();
+
+            const pdf =
+            await PDFLib.PDFDocument.load(bytes);
+
+            const pages =
+            await mergedPdf.copyPages(
+                pdf,
+                pdf.getPageIndices()
+            );
+
+            pages.forEach(page =>
+                mergedPdf.addPage(page)
+            );
+        }
+
+        const mergedBytes =
+        await mergedPdf.save();
+
+        finalBlob =
+        new Blob(
+            [mergedBytes],
+            {type:"application/pdf"}
+        );
+
+        document.getElementById("result")
+        .style.display = "block";
+
+        document.getElementById("resultName")
+        .innerText =
+        "Merged_Application.pdf";
+
+    }
+    catch(error){
+
+        alert(error.message);
+    }
+}
+
+function compressFiles(){
+
+    alert(
+`Real PDF compression requires a backend.
+
+Recommended:
+
+• FastAPI
+• Streamlit
+• Node.js
+
+Browser-only applications cannot guarantee
+compression to 2MB, 500KB, etc.`
+    );
+}
+
+function downloadFile(){
+
+    if(!finalBlob) return;
+
+    const url =
+    URL.createObjectURL(finalBlob);
+
+    const a =
+    document.createElement("a");
+
     a.href = url;
-    a.download = finalFileName.textContent;
+
+    a.download =
+    "Merged_Application.pdf";
+
     a.click();
+
+    URL.revokeObjectURL(url);
 }
+
 </script>
 
 </body>
