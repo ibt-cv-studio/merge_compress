@@ -1,193 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JobPack - Merge & Compress</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; }
-        .drop-zone { transition: all 0.3s; }
-        .drop-zone.dragover { background-color: #dbeafe; border-color: #3b82f6; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobPack - PDF Merger</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+<style>
+body{
+    font-family:system-ui,sans-serif;
+}
+
+.drop-zone{
+    transition:all .3s ease;
+}
+
+.drop-zone.dragover{
+    background:#dbeafe;
+    border-color:#2563eb;
+}
+
+.card{
+    animation:fadeIn .4s ease;
+}
+
+@keyframes fadeIn{
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+</style>
 </head>
+
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
 
-<div class="max-w-6xl mx-auto p-6">
-    <h1 class="text-5xl font-bold text-center text-gray-900 mb-2">📄 JobPack</h1>
-    <p class="text-center text-xl text-blue-600 mb-10">Merge Documents • Smart Compress • Ready for Job Applications</p>
+<div class="max-w-5xl mx-auto p-6">
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="text-center mb-10">
+        <h1 class="text-5xl font-bold text-gray-900">
+            📄 JobPack
+        </h1>
 
-        <!-- LEFT: MERGE SECTION -->
-        <div class="bg-white rounded-3xl shadow-xl p-8">
-            <h2 class="text-3xl font-semibold mb-6 text-center">Merge Documents</h2>
-            
-            <div id="dropZoneMerge" 
-                 class="drop-zone border-2 border-dashed border-blue-300 rounded-2xl p-12 text-center mb-8 cursor-pointer hover:border-blue-400">
-                <div class="text-6xl mb-4">📤</div>
-                <p class="text-lg font-medium">Drop files here or click to upload</p>
-                <p class="text-sm text-gray-500">PDF, DOCX, JPG, PNG, etc.</p>
-                <input type="file" id="mergeInput" multiple class="hidden">
+        <p class="text-xl text-blue-600 mt-2">
+            Professional Application Package Builder
+        </p>
+
+        <p class="text-gray-500 mt-2">
+            Merge CV, Cover Letter, Certificates and other PDF documents
+        </p>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-xl p-8">
+
+        <div
+            id="dropZone"
+            class="drop-zone border-2 border-dashed border-blue-300 rounded-2xl p-12 text-center cursor-pointer">
+
+            <div class="text-6xl mb-4">
+                📤
             </div>
 
-            <div id="mergeFileList" class="mb-8 space-y-3 min-h-[250px]"></div>
+            <h2 class="text-2xl font-semibold">
+                Upload PDF Files
+            </h2>
 
-            <button onclick="mergeDocuments()" 
-                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-6 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
-                🚀 Merge All Documents
-            </button>
+            <p class="text-gray-500 mt-2">
+                Click or Drag & Drop PDFs Here
+            </p>
+
+            <input
+                type="file"
+                id="fileInput"
+                multiple
+                accept=".pdf"
+                class="hidden">
         </div>
 
-        <!-- RIGHT: COMPRESS SECTION -->
-        <div class="bg-white rounded-3xl shadow-xl p-8">
-            <h2 class="text-3xl font-semibold mb-6 text-center">Compress Document</h2>
-            
-            <div id="dropZoneCompress" 
-                 class="drop-zone border-2 border-dashed border-emerald-300 rounded-2xl p-10 text-center mb-8 cursor-pointer hover:border-emerald-400">
-                <div class="text-6xl mb-4">📄</div>
-                <p class="text-lg font-medium">Drop one file to compress</p>
-                <input type="file" id="compressInput" class="hidden">
-            </div>
+        <div id="fileList" class="mt-8 space-y-3"></div>
 
-            <div class="mb-8">
-                <label class="block text-sm font-medium mb-2">Target Size</label>
-                <div class="flex gap-3">
-                    <input type="number" id="targetSize" value="2" class="flex-1 border rounded-xl px-5 py-4 text-2xl text-center">
-                    <select id="unit" class="border rounded-xl px-5 py-4 text-xl">
-                        <option value="MB">MB</option>
-                        <option value="KB">KB</option>
-                    </select>
-                </div>
-            </div>
+        <div class="mt-8">
+            <button
+                id="mergeBtn"
+                onclick="mergePDFs()"
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-2xl text-xl font-bold hover:opacity-90">
 
-            <button onclick="compressSingleFile()" 
-                    class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-6 rounded-2xl text-2xl font-bold hover:scale-105 transition-all">
-                📏 Compress to Target Size
+                🚀 Merge Documents
             </button>
         </div>
 
     </div>
 
-    <!-- Result Area -->
-    <div id="result" class="hidden mt-8 bg-green-50 border border-green-200 rounded-3xl p-8 text-center">
-        <h3 class="text-2xl font-semibold mb-4 text-green-700">✅ Your File is Ready!</h3>
-        <a id="downloadBtn" class="inline-block bg-green-600 text-white px-12 py-5 rounded-2xl text-xl font-bold hover:bg-green-700">
-            📥 Download File
+    <div
+        id="result"
+        class="hidden mt-8 bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
+
+        <h3 class="text-2xl font-bold text-green-700 mb-4">
+            ✅ PDF Ready
+        </h3>
+
+        <p class="text-gray-600 mb-6">
+            Your merged application package is ready.
+        </p>
+
+        <a
+            id="downloadBtn"
+            class="inline-block bg-green-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-green-700">
+            📥 Download PDF
         </a>
     </div>
+
 </div>
 
 <script>
-let mergeFiles = [];
-let compressFile = null;
 
-// Merge Section
-const dropMerge = document.getElementById('dropZoneMerge');
-const inputMerge = document.getElementById('mergeInput');
-const mergeList = document.getElementById('mergeFileList');
+let files = [];
 
-dropMerge.addEventListener('click', () => inputMerge.click());
-dropMerge.addEventListener('dragover', e => { e.preventDefault(); dropMerge.classList.add('dragover'); });
-dropMerge.addEventListener('dragleave', () => dropMerge.classList.remove('dragover'));
-dropMerge.addEventListener('drop', e => { e.preventDefault(); dropMerge.classList.remove('dragover'); handleMergeFiles(e.dataTransfer.files); });
-inputMerge.addEventListener('change', e => handleMergeFiles(e.target.files));
+const dropZone = document.getElementById("dropZone");
+const fileInput = document.getElementById("fileInput");
+const fileList = document.getElementById("fileList");
 
-function handleMergeFiles(newFiles) {
-    mergeFiles = mergeFiles.concat(Array.from(newFiles));
-    renderMergeList();
-}
+dropZone.addEventListener("click", () => {
+    fileInput.click();
+});
 
-function renderMergeList() {
-    mergeList.innerHTML = '';
-    mergeFiles.forEach((file, i) => {
-        const div = document.createElement('div');
-        div.className = "flex justify-between items-center bg-gray-50 p-4 rounded-2xl";
-        div.innerHTML = `
-            <span>${i+1}. ${file.name}</span>
-            <button onclick="removeMergeFile(${i})" class="text-red-500">Remove</button>
-        `;
-        mergeList.appendChild(div);
-    });
-}
-
-function removeMergeFile(i) {
-    mergeFiles.splice(i, 1);
-    renderMergeList();
-}
-
-// Compress Section
-const dropCompress = document.getElementById('dropZoneCompress');
-const inputCompress = document.getElementById('compressInput');
-
-dropCompress.addEventListener('click', () => inputCompress.click());
-dropCompress.addEventListener('drop', e => {
+dropZone.addEventListener("dragover", e => {
     e.preventDefault();
-    compressFile = e.dataTransfer.files[0];
-    alert(`Selected for compression: ${compressFile.name}`);
-});
-inputCompress.addEventListener('change', e => {
-    compressFile = e.target.files[0];
-    alert(`Selected for compression: ${compressFile.name}`);
+    dropZone.classList.add("dragover");
 });
 
-async function mergeDocuments() {
-    if (mergeFiles.length === 0) return alert("Upload at least one file");
-    
-    const btn = event.target;
-    btn.innerHTML = "🔄 Merging...";
-    btn.disabled = true;
+dropZone.addEventListener("dragleave", () => {
+    dropZone.classList.remove("dragover");
+});
 
-    try {
-        const mergedPdf = await PDFLib.PDFDocument.create();
-        for (let file of mergeFiles) {
-            if (file.type === "application/pdf") {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
-                const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-                pages.forEach(p => mergedPdf.addPage(p));
-            }
+dropZone.addEventListener("drop", e => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    handleFiles(e.dataTransfer.files);
+});
+
+fileInput.addEventListener("change", e => {
+    handleFiles(e.target.files);
+});
+
+function handleFiles(newFiles){
+
+    for(let file of newFiles){
+
+        if(file.type === "application/pdf"){
+            files.push(file);
         }
-        const pdfBytes = await mergedPdf.save();
-        downloadFile(pdfBytes, "Merged_Application.pdf");
-    } catch (err) {
-        alert("Merge completed with limitations (only PDFs fully merged)");
+        else{
+            alert("Only PDF files are supported.");
+        }
     }
 
-    btn.innerHTML = "🚀 Merge All Documents";
+    renderFiles();
+}
+
+function formatSize(bytes){
+
+    let kb = bytes / 1024;
+    let mb = kb / 1024;
+
+    if(mb >= 1){
+        return mb.toFixed(2) + " MB";
+    }
+
+    return kb.toFixed(2) + " KB";
+}
+
+function renderFiles(){
+
+    fileList.innerHTML = "";
+
+    if(files.length === 0){
+        return;
+    }
+
+    let totalSize = 0;
+
+    files.forEach((file,index)=>{
+
+        totalSize += file.size;
+
+        const div = document.createElement("div");
+
+        div.className =
+        "card bg-gray-50 border rounded-xl p-4 flex justify-between items-center";
+
+        div.innerHTML = `
+        <div>
+            <div class="font-medium">${file.name}</div>
+            <div class="text-sm text-gray-500">
+                ${formatSize(file.size)}
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+
+            <button
+                onclick="moveUp(${index})"
+                class="bg-blue-100 px-3 py-1 rounded">
+                ↑
+            </button>
+
+            <button
+                onclick="moveDown(${index})"
+                class="bg-blue-100 px-3 py-1 rounded">
+                ↓
+            </button>
+
+            <button
+                onclick="removeFile(${index})"
+                class="bg-red-100 text-red-600 px-3 py-1 rounded">
+                Remove
+            </button>
+
+        </div>
+        `;
+
+        fileList.appendChild(div);
+    });
+
+    const summary = document.createElement("div");
+
+    summary.className =
+    "bg-blue-50 border border-blue-200 p-4 rounded-xl";
+
+    summary.innerHTML = `
+        <strong>Total Files:</strong> ${files.length}
+        <br>
+        <strong>Total Size:</strong> ${formatSize(totalSize)}
+    `;
+
+    fileList.appendChild(summary);
+}
+
+function moveUp(index){
+
+    if(index === 0) return;
+
+    [files[index],files[index-1]]
+    =
+    [files[index-1],files[index]];
+
+    renderFiles();
+}
+
+function moveDown(index){
+
+    if(index === files.length-1) return;
+
+    [files[index],files[index+1]]
+    =
+    [files[index+1],files[index]];
+
+    renderFiles();
+}
+
+function removeFile(index){
+
+    files.splice(index,1);
+
+    renderFiles();
+}
+
+async function mergePDFs(){
+
+    if(files.length === 0){
+
+        alert("Please upload at least one PDF.");
+
+        return;
+    }
+
+    const btn = document.getElementById("mergeBtn");
+
+    btn.disabled = true;
+    btn.innerHTML = "🔄 Merging PDFs...";
+
+    try{
+
+        const mergedPdf =
+        await PDFLib.PDFDocument.create();
+
+        for(const file of files){
+
+            const bytes =
+            await file.arrayBuffer();
+
+            const pdf =
+            await PDFLib.PDFDocument.load(bytes);
+
+            const pages =
+            await mergedPdf.copyPages(
+                pdf,
+                pdf.getPageIndices()
+            );
+
+            pages.forEach(page =>
+                mergedPdf.addPage(page)
+            );
+        }
+
+        const mergedBytes =
+        await mergedPdf.save();
+
+        const blob =
+        new Blob(
+            [mergedBytes],
+            {type:"application/pdf"}
+        );
+
+        const url =
+        URL.createObjectURL(blob);
+
+        const downloadBtn =
+        document.getElementById("downloadBtn");
+
+        downloadBtn.href = url;
+        downloadBtn.download =
+        "Application_Package.pdf";
+
+        document
+        .getElementById("result")
+        .classList
+        .remove("hidden");
+
+    }
+    catch(error){
+
+        alert(
+            "Error merging PDFs:\n" +
+            error.message
+        );
+    }
+
     btn.disabled = false;
+    btn.innerHTML =
+    "🚀 Merge Documents";
 }
 
-function compressSingleFile() {
-    if (!compressFile) return alert("Please upload a file to compress first");
-    
-    const size = parseFloat(document.getElementById('targetSize').value);
-    const unit = document.getElementById('unit').value;
-    const targetMB = unit === "KB" ? size / 1024 : size;
-
-    alert(`Compressing ${compressFile.name} to approximately ${size} ${unit}...\n\nNote: Full compression is simulated. File will be optimized.`);
-    
-    // For now, we download the original as "compressed" (real compression needs server)
-    // In future we can add better logic
-    const reader = new FileReader();
-    reader.onload = function() {
-        downloadFile(reader.result, `Compressed_${compressFile.name}`);
-    };
-    reader.readAsArrayBuffer(compressFile);
-}
-
-function downloadFile(data, filename) {
-    const blob = new Blob([data], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    
-    document.getElementById('result').classList.remove('hidden');
-    document.getElementById('downloadBtn').onclick = () => a.click();
-}
 </script>
 
 </body>
